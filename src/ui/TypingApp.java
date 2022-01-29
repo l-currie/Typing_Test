@@ -1,13 +1,15 @@
 package ui;
 
-import Model.TypingTest;
+import model.TypingTest;
 
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class TypingApp {
     private Scanner input;
     private TypingTest test;
     private Boolean isRunning;
+    private int curTestType;
 
     public TypingApp() throws InterruptedException {
         isRunning = true;
@@ -39,6 +41,7 @@ public class TypingApp {
     }
 
     public void handleInput(String command) throws InterruptedException {
+        curTestType = Integer.parseInt(command);
         if (command.equals("1")) {
             doRandom(5);
         } else if (command.equals("2")) {
@@ -69,15 +72,54 @@ public class TypingApp {
     }
 
     public void runTest() throws InterruptedException {
-        test.runTest();
+
+        System.out.println("\n\n\n\nYour test will begin in 3 seconds \n\n");
+        for (int i = 3; i > 0; i--) {
+            System.out.println(i);
+            TimeUnit.SECONDS.sleep(1);
+        }
+
+        String[] testWords = test.getWords();
+
+        for (int i = 0; i < testWords.length; i++) {
+            if ((i) % 10 == 0) {
+                System.out.print("\n" + testWords[i] + " ");
+            } else {
+                System.out.print(testWords[i] + " ");
+            }
+        }
+
+        test.setStartTime(System.currentTimeMillis());
+
+        input = new Scanner(System.in);
+        test.setRawInput(input.nextLine());
+        test.setEndTime(System.currentTimeMillis());
+        test.setTypedWords(test.getRawInput().split(" "));
+
+        test.updateStats();
+
+        double accuracy = test.getAccuracy();
+        double grossWPM = test.getGrossWPM();
+        double netWPM = test.getNetWPM();
+        double elapsedTime = test.getElapsedTime();
+
+        System.out.println("You finished in " + elapsedTime + " seconds! \n");
+        System.out.println("Your gross WPM was: " + grossWPM + "!\n");
+        System.out.println("Your net WPM was: " + netWPM + "!\n");
+        System.out.printf("Accuracy: %.2f", accuracy);
 
         System.out.println("");
         boolean returnToMenu = false;
         while (!returnToMenu) {
             System.out.println("Enter 'm' to return to the menu");
+            System.out.println("Enter 'r' to do another test of the same type!");
             String temp = input.next();
             if (temp.equals("m")) {
                 returnToMenu = true;
+            }
+            if(temp.equals("r")) {
+                returnToMenu = true;
+                handleInput(Integer.toString(curTestType));
             }
         }
     }
